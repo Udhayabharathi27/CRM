@@ -264,7 +264,7 @@ function LeadDialog({ isOpen, onOpenChange, lead, onSuccess }: LeadDialogProps) 
     mutation.mutate({
       ...formData,
       probability: parseInt(formData.probability) || 25,
-      estimatedValue: formData.estimatedValue === '' ? null : parseFloat(formData.estimatedValue),
+      estimatedValue: formData.estimatedValue === '' ? null : formData.estimatedValue,
       assignedTo: formData.assignedTo === 'unassigned' ? null : formData.assignedTo,
     });
   };
