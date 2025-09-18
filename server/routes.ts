@@ -194,6 +194,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/communications/:id", async (req, res) => {
+    try {
+      const success = await storage.deleteCommunication(req.params.id);
+      if (!success) {
+        return res.status(404).json({ error: "Communication not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting communication:", error);
+      res.status(500).json({ error: "Failed to delete communication" });
+    }
+  });
+
   // Dashboard stats route
   app.get("/api/dashboard-stats", async (req, res) => {
     try {

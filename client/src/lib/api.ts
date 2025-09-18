@@ -18,6 +18,11 @@ async function apiRequest(endpoint: string, options?: RequestInit) {
     throw new Error(error.error || `HTTP ${response.status}`);
   }
 
+  // Handle 204 No Content responses (like DELETE operations)
+  if (response.status === 204) {
+    return undefined;
+  }
+
   return response.json();
 }
 
@@ -119,6 +124,12 @@ export const communicationsApi = {
     return apiRequest(`/api/communications/${id}`, {
       method: 'PUT',
       body: JSON.stringify(updates),
+    });
+  },
+
+  delete: (id: string): Promise<void> => {
+    return apiRequest(`/api/communications/${id}`, {
+      method: 'DELETE',
     });
   },
 };

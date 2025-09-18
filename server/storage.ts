@@ -41,6 +41,7 @@ export interface IStorage {
   getCommunications(leadId?: string): Promise<Communication[]>;
   createCommunication(communication: InsertCommunication): Promise<Communication>;
   updateCommunication(id: string, updates: Partial<InsertCommunication>): Promise<Communication>;
+  deleteCommunication(id: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -223,6 +224,11 @@ export class DatabaseStorage implements IStorage {
       .where(eq(communications.id, id))
       .returning();
     return communication;
+  }
+
+  async deleteCommunication(id: string): Promise<boolean> {
+    const result = await db.delete(communications).where(eq(communications.id, id));
+    return (result.rowCount ?? 0) > 0;
   }
 }
 

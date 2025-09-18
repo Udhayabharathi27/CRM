@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
+import CommunicationHistory from "@/components/CommunicationHistory";
 import { DollarSign, Phone, Mail, Calendar, Plus, Edit, Trash2, MoreHorizontal } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { leadsApi } from "@/lib/api";
@@ -421,6 +422,15 @@ function LeadDialog({ isOpen, onOpenChange, lead, onSuccess }: LeadDialogProps) 
             </Button>
           </div>
         </form>
+
+        {lead && (
+          <div className="border-t pt-6">
+            <CommunicationHistory 
+              leadId={lead.id} 
+              leadName={`${lead.firstName} ${lead.lastName}`}
+            />
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
