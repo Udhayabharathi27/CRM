@@ -1,0 +1,44 @@
+You are a senior software architect and full-stack developer. Your task is to automatically generate a production-ready CRM web application for a medium-sized solar panel sales company. The CRM will handle sales pipeline management, marketing campaigns, and all internal and external communications. Use the following requirements and constraints:
+1. Technology Stack
+	•	Backend: Node.js with Express or Fastify
+	•	Frontend: React (with TypeScript) and Tailwind CSS
+	•	Database: PostgreSQL (hosted with Prisma ORM)
+	•	Authentication: JWT-based auth with secure password reset
+	•	Email/SMS: Integrate with SendGrid and Twilio APIs
+	•	Deployment: Docker containers orchestrated via GitHub Actions CI/CD
+2. Core Features
+a. Sales Pipeline
+	•	Lead ingestion from web forms and CSV import
+	•	Lead qualification stages (New → Contacted → Proposal → Closed)
+	•	Automated reminders and notifications
+	•	Customizable deal value and probability fields
+b. Marketing Module
+	•	Drag-and-drop email campaign builder
+	•	Campaign scheduling and segmentation by region, lead source, and company size
+	•	Open-rate and click-through analytics dashboard
+c. Communications Hub
+	•	Central feed for emails, SMS, and in-app chat threads
+	•	Templates library (email, SMS, proposal PDFs) with variable placeholders
+	•	Activity timeline per customer with attachments
+d. Admin & Reporting
+	•	Role-based access control (Admin, Sales rep, Marketing, Support)
+	•	Dashboard with KPIs: monthly sales, pipeline health, campaign ROI
+	•	Exportable reports (CSV, PDF)
+e. Integrations & Extensibility
+	•	REST API endpoints for third-party integrations (ERP, accounting)
+	•	Webhooks support for real-time event notifications
+3. Development Requirements
+	•	Provide a clear project folder structure (`/api`, `/web`, `/prisma`, `/scripts`, `/docker`)
+	•	Include a `README.md` with setup, environment variables, and deployment steps
+	•	Write unit tests (Jest) for business logic and integration tests for key API routes
+	•	Use ESLint and Prettier with a shared config
+	•	Generate Dockerfiles for API and Web with multi-stage builds
+4. Delivery Format
+	•	Generate code scaffolding for each module with comments explaining design decisions
+	•	Provide configuration templates (`.env.example`, `docker-compose.yml`)
+	•	Include sample seed data for leads, users, and campaigns
+5. Execution
+	•	Structure responses as numbered steps to scaffold the project
+	•	For each step, output file paths, code snippets, and configuration blocks
+	•	At the end, summarize next actions and testing checklist
+Begin by outlining the overall project architecture, then scaffold the backend API, database schema, authentication, and finally the frontend UI and deployment pipeline.
