@@ -201,12 +201,12 @@ interface LeadDialogProps {
   onSuccess: () => void;
 }
 
-// Sample users for assignment - in a real app this would come from the users API
+// Sample users for assignment - using actual user IDs from database
 const SAMPLE_USERS = [
-  { id: '1', name: 'John Smith' },
-  { id: '2', name: 'Sarah Johnson' },
-  { id: '3', name: 'Mike Davis' },
-  { id: '4', name: 'Lisa Chen' },
+  { id: '57aec392-41bc-44a8-ad61-8a7ed6afdf62', name: 'John Doe' },
+  { id: '6d3e500b-0ec1-405e-9bc6-aec4aca51822', name: 'Jane Smith' },
+  { id: '1d3e06fb-b1fe-40c1-b67d-a38f1becf695', name: 'Mike Johnson' },
+  { id: 'c177576b-322e-4610-83b0-95d34247c436', name: 'Admin User' },
 ];
 
 function LeadDialog({ isOpen, onOpenChange, lead, onSuccess }: LeadDialogProps) {
@@ -221,7 +221,7 @@ function LeadDialog({ isOpen, onOpenChange, lead, onSuccess }: LeadDialogProps) 
     state: lead?.state || '',
     zipCode: lead?.zipCode || '',
     estimatedValue: lead?.estimatedValue || '',
-    assignedTo: lead?.assignedTo || '',
+    assignedTo: lead?.assignedTo || 'unassigned',
     probability: lead?.probability?.toString() || '25',
     notes: lead?.notes || '',
     source: lead?.source || 'manual',
@@ -263,6 +263,8 @@ function LeadDialog({ isOpen, onOpenChange, lead, onSuccess }: LeadDialogProps) 
     mutation.mutate({
       ...formData,
       probability: parseInt(formData.probability) || 25,
+      estimatedValue: formData.estimatedValue === '' ? null : parseFloat(formData.estimatedValue),
+      assignedTo: formData.assignedTo === 'unassigned' ? null : formData.assignedTo,
     });
   };
 
@@ -391,7 +393,7 @@ function LeadDialog({ isOpen, onOpenChange, lead, onSuccess }: LeadDialogProps) 
                 <SelectValue placeholder="Select assignee" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Unassigned</SelectItem>
+                <SelectItem value="unassigned">Unassigned</SelectItem>
                 {SAMPLE_USERS.map((user) => (
                   <SelectItem key={user.id} value={user.id}>{user.name}</SelectItem>
                 ))}
