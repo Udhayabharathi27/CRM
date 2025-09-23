@@ -18,7 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 
 interface LeadCardProps {
   lead: Lead;
-  onStatusUpdate: (leadId: string, newStatus: string) => void;
+  onStatusUpdate: (leadId: string, newStatus: Lead['status']) => void;
   onEdit: (lead: Lead) => void;
   onDelete: (leadId: string) => void;
 }
@@ -67,7 +67,7 @@ function LeadCard({ lead, onStatusUpdate, onEdit, onDelete }: LeadCardProps) {
   };
 
   return (
-    <Card className="mb-3 hover-elevate" data-testid={`card-lead-${lead.id}`}>
+    <Card className="mb-3 hover-elevate border-2 border-border/80 shadow-md hover:shadow-lg transition-all duration-200 group bg-card" data-testid={`card-lead-${lead.id}`}>
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
@@ -83,7 +83,7 @@ function LeadCard({ lead, onStatusUpdate, onEdit, onDelete }: LeadCardProps) {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Select value={lead.status} onValueChange={(value) => onStatusUpdate(lead.id, value)}>
+            <Select value={lead.status} onValueChange={(value) => onStatusUpdate(lead.id, value as Lead['status'])}>
               <SelectTrigger className="h-6 text-xs border-0 p-0">
                 <Badge className={getStatusColor(lead.status)} data-testid={`badge-status-${lead.id}`}>
                   {getStatusLabel(lead.status)}
@@ -125,10 +125,21 @@ function LeadCard({ lead, onStatusUpdate, onEdit, onDelete }: LeadCardProps) {
           <div className="text-xs text-muted-foreground">{lead.probability}%</div>
         </div>
 
-        <div className="text-xs text-muted-foreground mb-3">
-          <div>📧 {lead.email}</div>
-          {lead.phone && <div>📞 {lead.phone}</div>}
-          <div>📅 Updated {formatDate(lead.updatedAt)}</div>
+        <div className="text-xs text-muted-foreground mb-3 space-y-1">
+          <div className="flex items-center gap-1">
+            <Mail className="h-3 w-3" />
+            <span>{lead.email}</span>
+          </div>
+          {lead.phone && (
+            <div className="flex items-center gap-1">
+              <Phone className="h-3 w-3" />
+              <span>{lead.phone}</span>
+            </div>
+          )}
+          <div className="flex items-center gap-1">
+            <Calendar className="h-3 w-3" />
+            <span>Updated {formatDate(lead.updatedAt)}</span>
+          </div>
         </div>
         
         <div className="flex gap-1">
@@ -152,7 +163,7 @@ interface PipelineStageProps {
   status: string;
   leads: Lead[];
   color: string;
-  onStatusUpdate: (leadId: string, newStatus: string) => void;
+  onStatusUpdate: (leadId: string, newStatus: Lead['status']) => void;
   onEdit: (lead: Lead) => void;
   onDelete: (leadId: string) => void;
 }
@@ -454,7 +465,7 @@ export default function LeadManagement() {
   });
 
   const updateStatusMutation = useMutation({
-    mutationFn: ({ leadId, status }: { leadId: string; status: string }) => 
+    mutationFn: ({ leadId, status }: { leadId: string; status: Lead['status'] }) => 
       leadsApi.update(leadId, { status }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/leads'] });

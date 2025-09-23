@@ -87,7 +87,7 @@ export default function CampaignCard({
   };
 
   return (
-    <Card className="hover-elevate" data-testid={`card-campaign-${campaign.id}`}>
+    <Card className="hover-elevate border-2 border-border/80 shadow-md hover:shadow-lg transition-all duration-200 bg-card" data-testid={`card-campaign-${campaign.id}`}>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="space-y-1">

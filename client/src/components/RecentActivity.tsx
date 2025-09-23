@@ -64,41 +64,42 @@ function getStatusBadge(status?: Activity['status']) {
 
 function ActivityItem({ activity }: { activity: Activity }) {
   return (
-    <div className="flex items-start gap-3 p-3 hover-elevate rounded-md" data-testid={`activity-item-${activity.id}`}>
-      <div className={`flex h-8 w-8 items-center justify-center rounded-full ${getActivityColor(activity.type)}`}>
+    <div className="flex items-start gap-4 p-4 hover-elevate rounded-lg border border-border/40 transition-all duration-200 group" data-testid={`activity-item-${activity.id}`}>
+      <div className={`flex h-10 w-10 items-center justify-center rounded-lg shadow-sm ${getActivityColor(activity.type)} group-hover:scale-105 transition-transform duration-200`}>
         {getActivityIcon(activity.type)}
       </div>
       
-      <div className="flex-1 min-w-0 space-y-1">
-        <div className="flex items-center justify-between gap-2">
-          <h4 className="text-sm font-medium truncate" data-testid={`text-activity-title-${activity.id}`}>
+      <div className="flex-1 min-w-0 space-y-2">
+        <div className="flex items-start justify-between gap-3">
+          <h4 className="text-sm font-semibold text-foreground truncate leading-5" data-testid={`text-activity-title-${activity.id}`}>
             {activity.title}
           </h4>
           {getStatusBadge(activity.status)}
         </div>
         
-        <p className="text-xs text-muted-foreground line-clamp-2">
+        <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
           {activity.description}
         </p>
         
-        <div className="flex items-center justify-between text-xs">
-          <div className="flex items-center gap-2">
-            <span className="font-medium">{activity.leadName}</span>
-            <span className="text-muted-foreground">at {activity.leadCompany}</span>
+        <div className="flex items-center justify-between text-sm gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="font-medium text-foreground/90 truncate">{activity.leadName}</span>
+            <span className="text-muted-foreground/80 hidden sm:inline">•</span>
+            <span className="text-muted-foreground/80 truncate hidden sm:inline">{activity.leadCompany}</span>
           </div>
-          <span className="text-muted-foreground" data-testid={`text-timestamp-${activity.id}`}>
+          <span className="text-muted-foreground/70 text-xs font-medium whitespace-nowrap" data-testid={`text-timestamp-${activity.id}`}>
             {activity.timestamp}
           </span>
         </div>
         
-        <div className="flex items-center gap-2">
-          <Avatar className="h-5 w-5">
+        <div className="flex items-center gap-2 pt-1">
+          <Avatar className="h-6 w-6 border border-border/40">
             <AvatarImage src={activity.userAvatar} />
-            <AvatarFallback className="text-xs">
+            <AvatarFallback className="text-xs font-medium bg-muted">
               {activity.userName.split(' ').map(n => n[0]).join('')}
             </AvatarFallback>
           </Avatar>
-          <span className="text-xs text-muted-foreground">by {activity.userName}</span>
+          <span className="text-xs text-muted-foreground/80 font-medium">by {activity.userName}</span>
         </div>
       </div>
     </div>
@@ -166,17 +167,17 @@ export default function RecentActivity() {
   ];
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">Recent Activity</CardTitle>
+    <Card className="shadow-sm border-border/60">
+      <CardHeader className="pb-4">
+        <div className="flex items-center justify-between gap-3">
+          <CardTitle className="text-xl font-bold text-foreground">Recent Activity</CardTitle>
           <Button size="sm" variant="outline" data-testid="button-view-all-activity">
             View All
           </Button>
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-1 max-h-[400px] overflow-y-auto">
+      <CardContent className="pt-0">
+        <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2">
           {activities.map((activity) => (
             <ActivityItem key={activity.id} activity={activity} />
           ))}

@@ -16,19 +16,33 @@ function StatsCard({ title, value, change, icon, trend, isLoading }: StatsCardPr
   const trendColor = trend === 'up' ? 'text-chart-3' : trend === 'down' ? 'text-destructive' : 'text-muted-foreground';
   
   return (
-    <Card data-testid={`card-stats-${title.toLowerCase().replace(' ', '-')}`}>
-      <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        <div className="text-muted-foreground">{icon}</div>
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold" data-testid={`text-value-${title.toLowerCase().replace(' ', '-')}`}>
-          {isLoading ? '...' : value}
+    <Card className="hover-elevate group border-border/60 shadow-sm transition-all duration-200" data-testid={`card-stats-${title.toLowerCase().replace(' ', '-')}`}>
+      <CardHeader className="flex flex-row items-center justify-between gap-3 space-y-0 pb-3">
+        <CardTitle className="text-sm font-semibold text-foreground/80 uppercase tracking-wide">{title}</CardTitle>
+        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors duration-200 group-hover:bg-primary/15">
+          {icon}
         </div>
-        <p className={`text-xs ${trendColor} flex items-center gap-1`} data-testid={`text-change-${title.toLowerCase().replace(' ', '-')}`}>
-          <TrendingUp className="h-3 w-3" />
-          {isLoading ? 'Loading...' : change}
-        </p>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="text-3xl font-bold text-foreground tracking-tight" data-testid={`text-value-${title.toLowerCase().replace(' ', '-')}`}>
+          {isLoading ? (
+            <div className="animate-pulse bg-muted rounded h-8 w-24"></div>
+          ) : (
+            value
+          )}
+        </div>
+        <div className={`text-sm ${trendColor} flex items-center gap-2 font-medium`} data-testid={`text-change-${title.toLowerCase().replace(' ', '-')}`}>
+          <div className={`flex h-5 w-5 items-center justify-center rounded-full ${
+            trend === 'up' ? 'bg-chart-3/20' : trend === 'down' ? 'bg-destructive/20' : 'bg-muted-foreground/20'
+          }`}>
+            <TrendingUp className="h-3 w-3" />
+          </div>
+          {isLoading ? (
+            <div className="animate-pulse bg-muted rounded h-4 w-32"></div>
+          ) : (
+            change
+          )}
+        </div>
       </CardContent>
     </Card>
   );
@@ -76,7 +90,7 @@ export default function DashboardStats() {
   ];
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-4">
       {statsCards.map((stat) => (
         <StatsCard key={stat.title} {...stat} isLoading={isLoading} />
       ))}
