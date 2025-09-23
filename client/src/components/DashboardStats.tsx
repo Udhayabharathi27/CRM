@@ -16,7 +16,7 @@ function StatsCard({ title, value, change, icon, trend, isLoading }: StatsCardPr
   const trendColor = trend === 'up' ? 'text-chart-3' : trend === 'down' ? 'text-destructive' : 'text-muted-foreground';
   
   return (
-    <Card className="card-enhance group border-border/60 shadow-sm" data-testid={`card-stats-${title.toLowerCase().replace(' ', '-')}`}>
+    <Card className="card-enhance group border-2 border-border/80 shadow-md bg-card" data-testid={`card-stats-${title.toLowerCase().replace(' ', '-')}`}>
       <CardHeader className="flex flex-row items-center justify-between gap-3 space-y-0 pb-3">
         <CardTitle className="text-sm font-semibold text-foreground/80 uppercase tracking-wide state-transition">{title}</CardTitle>
         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary scale-interaction group-hover:bg-primary/15">

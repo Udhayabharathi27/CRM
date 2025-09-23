@@ -39,7 +39,7 @@ export default function Pipeline() {
 
       <DashboardStats />
 
-      <div className="bg-card border border-border/60 rounded-lg p-6 shadow-sm space-y-4">
+      <div className="card-enhance bg-card border-2 border-border/80 rounded-lg p-6 shadow-md space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold text-foreground">Pipeline Controls</h3>
           <p className="text-sm text-muted-foreground">Search and filter your leads</p>

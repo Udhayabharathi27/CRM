@@ -174,7 +174,7 @@ function PipelineStage({ title, status, leads, color, onStatusUpdate, onEdit, on
   
   return (
     <div className="flex-1 min-w-[280px]">
-      <Card className="h-full">
+      <Card className="h-full border-2 border-border/80 shadow-md bg-card">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
@@ -678,7 +678,7 @@ export default function LeadManagement() {
         <div className="flex gap-4 overflow-x-auto pb-4">
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="flex-1 min-w-[280px]">
-              <Card className="h-[400px] animate-pulse">
+              <Card className="h-[400px] border-2 border-border/80 shadow-md bg-card animate-pulse">
                 <CardHeader>
                   <div className="h-4 bg-muted rounded"></div>
                 </CardHeader>
