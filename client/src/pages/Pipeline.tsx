@@ -21,17 +21,17 @@ export default function Pipeline() {
             variant="outline" 
             size="default"
             data-testid="button-export-pipeline"
-            className="hover-elevate"
+            className="button-enhance ripple"
           >
-            <Download className="h-4 w-4 mr-2" />
+            <Download className="h-4 w-4 mr-2 state-transition" />
             Export Pipeline
           </Button>
           <Button 
             size="default"
             data-testid="button-add-lead"
-            className="hover-elevate"
+            className="button-enhance ripple"
           >
-            <Plus className="h-4 w-4 mr-2" />
+            <Plus className="h-4 w-4 mr-2 state-transition" />
             Add New Lead
           </Button>
         </div>
@@ -49,7 +49,7 @@ export default function Pipeline() {
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Search leads by name, company, email..."
-              className="pl-9 border-border/60 focus:border-primary/60"
+              className="pl-9 border-border/60 focus:border-primary/60 field-enhance"
               data-testid="input-search-leads"
             />
           </div>
@@ -57,9 +57,9 @@ export default function Pipeline() {
             variant="outline" 
             size="default"
             data-testid="button-filter-leads"
-            className="hover-elevate min-w-28"
+            className="button-enhance min-w-28"
           >
-            <Filter className="h-4 w-4 mr-2" />
+            <Filter className="h-4 w-4 mr-2 state-transition" />
             Advanced Filters
           </Button>
         </div>

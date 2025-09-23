@@ -337,10 +337,10 @@ function CommunicationDialog({ isOpen, onOpenChange, communication, onSuccess }:
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="min-w-20">
                 Cancel
               </Button>
-              <Button type="submit" disabled={mutation.isPending} data-testid="button-save-communication" className="min-w-32">
+              <Button type="submit" disabled={mutation.isPending} data-testid="button-save-communication" className="min-w-32 button-enhance">
                 {mutation.isPending ? (
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    <div className="spinner-professional"></div>
                     Saving...
                   </div>
                 ) : (
@@ -463,8 +463,8 @@ export default function CommunicationsManagement() {
             Track all customer interactions and communications
           </p>
         </div>
-        <Button onClick={handleNewCommunication} data-testid="button-new-communication" className="hover-elevate" size="default">
-          <Plus className="h-4 w-4 mr-2" />
+        <Button onClick={handleNewCommunication} data-testid="button-new-communication" className="button-enhance ripple" size="default">
+          <Plus className="h-4 w-4 mr-2 state-transition" />
           New Communication
         </Button>
       </div>
@@ -479,7 +479,7 @@ export default function CommunicationsManagement() {
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Search communications by subject, content..."
-              className="pl-9 border-border/60 focus:border-primary/60"
+              className="pl-9 border-border/60 focus:border-primary/60 field-enhance"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               data-testid="input-search-communications"

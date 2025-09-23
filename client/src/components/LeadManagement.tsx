@@ -68,25 +68,25 @@ function LeadCard({ lead, onStatusUpdate, onEdit, onDelete }: LeadCardProps) {
   };
 
   return (
-    <Card className="mb-3 hover-elevate border-2 border-border/80 shadow-md hover:shadow-lg transition-all duration-200 group bg-card" data-testid={`card-lead-${lead.id}`}>
+    <Card className="mb-3 card-enhance border-2 border-border/80 shadow-md group bg-card" data-testid={`card-lead-${lead.id}`}>
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
-            <Avatar className="h-8 w-8">
+            <Avatar className="h-8 w-8 scale-interaction">
               <AvatarImage src="" />
-              <AvatarFallback>{getInitials(lead.firstName, lead.lastName)}</AvatarFallback>
+              <AvatarFallback className="state-transition">{getInitials(lead.firstName, lead.lastName)}</AvatarFallback>
             </Avatar>
             <div>
-              <div className="font-medium text-sm" data-testid={`text-lead-name-${lead.id}`}>
+              <div className="font-medium text-sm state-transition" data-testid={`text-lead-name-${lead.id}`}>
                 {lead.firstName} {lead.lastName}
               </div>
-              <div className="text-xs text-muted-foreground">{lead.company}</div>
+              <div className="text-xs text-muted-foreground state-transition">{lead.company}</div>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <Select value={lead.status} onValueChange={(value) => onStatusUpdate(lead.id, value as Lead['status'])}>
               <SelectTrigger className="h-6 text-xs border-0 p-0">
-                <Badge className={getStatusColor(lead.status)} data-testid={`badge-status-${lead.id}`}>
+                <Badge className={`${getStatusColor(lead.status)} scale-interaction`} data-testid={`badge-status-${lead.id}`}>
                   {getStatusLabel(lead.status)}
                 </Badge>
               </SelectTrigger>
@@ -100,8 +100,8 @@ function LeadCard({ lead, onStatusUpdate, onEdit, onDelete }: LeadCardProps) {
             </Select>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button size="icon" variant="ghost" className="h-6 w-6">
-                  <MoreHorizontal className="h-3 w-3" />
+                <Button size="icon" variant="ghost" className="h-6 w-6 ripple">
+                  <MoreHorizontal className="h-3 w-3 state-transition" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -119,9 +119,9 @@ function LeadCard({ lead, onStatusUpdate, onEdit, onDelete }: LeadCardProps) {
         </div>
         
         <div className="flex items-center justify-between text-sm mb-2">
-          <div className="flex items-center gap-1 text-chart-1">
-            <DollarSign className="h-3 w-3" />
-            <span data-testid={`text-lead-value-${lead.id}`}>{formatCurrency(lead.estimatedValue)}</span>
+          <div className="flex items-center gap-1 text-chart-1 state-transition">
+            <DollarSign className="h-3 w-3 scale-interaction" />
+            <span data-testid={`text-lead-value-${lead.id}`} className="state-transition">{formatCurrency(lead.estimatedValue)}</span>
           </div>
           <div className="text-xs text-muted-foreground">{lead.probability}%</div>
         </div>
@@ -505,7 +505,7 @@ function LeadDialog({ isOpen, onOpenChange, lead, onSuccess }: LeadDialogProps) 
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                 data-testid="input-notes"
                 placeholder="Add any relevant notes about this lead..."
-                className="border-border/60 focus:border-primary/60 min-h-[100px] resize-none"
+                className="border-border/60 focus:border-primary/60 min-h-[100px] resize-none field-enhance"
                 rows={4}
               />
             </div>
@@ -516,13 +516,13 @@ function LeadDialog({ isOpen, onOpenChange, lead, onSuccess }: LeadDialogProps) 
               {lead ? 'Last updated: ' + new Date(lead.updatedAt || lead.createdAt).toLocaleDateString() : 'All required fields must be completed'}
             </div>
             <div className="flex gap-3">
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="min-w-20">
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="min-w-20 button-enhance">
                 Cancel
               </Button>
-              <Button type="submit" disabled={mutation.isPending} data-testid="button-save-lead" className="min-w-32">
+              <Button type="submit" disabled={mutation.isPending} data-testid="button-save-lead" className="min-w-32 button-enhance ripple">
                 {mutation.isPending ? (
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    <div className="spinner-professional"></div>
                     Saving...
                   </div>
                 ) : (
