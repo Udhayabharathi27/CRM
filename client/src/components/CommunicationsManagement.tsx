@@ -62,16 +62,17 @@ function CommunicationCard({ communication, lead, onEdit, onDelete, onComplete }
     return 'Draft';
   };
 
-  const formatDate = (date: string | null) => {
+  const formatDate = (date: string | Date | null) => {
     if (!date) return '';
-    return format(new Date(date), 'MMM d, yyyy h:mm a');
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    return format(dateObj, 'MMM d, yyyy h:mm a');
   };
 
   const leadName = lead ? `${lead.firstName} ${lead.lastName}` : 'Unknown Lead';
   const leadCompany = lead?.company || '';
 
   return (
-    <Card className="hover-elevate" data-testid={`card-communication-${communication.id}`}>
+    <Card className="hover-elevate border-2 border-border/80 shadow-md hover:shadow-lg transition-all duration-200 bg-card" data-testid={`card-communication-${communication.id}`}>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3">
@@ -211,101 +212,142 @@ function CommunicationDialog({ isOpen, onOpenChange, communication, onSuccess }:
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{communication ? 'Edit Communication' : 'New Communication'}</DialogTitle>
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader className="border-b pb-4">
+          <DialogTitle className="text-2xl font-bold text-foreground">
+            {communication ? 'Edit Communication' : 'New Communication'}
+          </DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="leadId">Lead</Label>
-              <Select value={formData.leadId} onValueChange={(value) => setFormData(prev => ({ ...prev, leadId: value }))}>
-                <SelectTrigger data-testid="select-lead">
-                  <SelectValue placeholder="Select lead" />
-                </SelectTrigger>
-                <SelectContent>
-                  {leads.map((lead) => (
-                    <SelectItem key={lead.id} value={lead.id}>
-                      {lead.firstName} {lead.lastName} - {lead.company}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+        <form onSubmit={handleSubmit} className="space-y-6 py-4">
+          {/* Assignment Section */}
+          <div className="space-y-4">
+            <div className="border-b pb-2">
+              <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                <div className="h-5 w-5 rounded bg-primary/10 flex items-center justify-center">
+                  <span className="text-primary text-sm font-bold">1</span>
+                </div>
+                Assignment
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1">Associate with lead and assign team member</p>
             </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="leadId" className="text-sm font-medium text-foreground">Lead *</Label>
+                <Select value={formData.leadId} onValueChange={(value) => setFormData(prev => ({ ...prev, leadId: value }))}>
+                  <SelectTrigger data-testid="select-lead" className="border-border/60 focus:border-primary/60">
+                    <SelectValue placeholder="Select lead" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {leads.map((lead) => (
+                      <SelectItem key={lead.id} value={lead.id}>
+                        {lead.firstName} {lead.lastName} - {lead.company}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-            <div>
-              <Label htmlFor="userId">Assigned To</Label>
-              <Select value={formData.userId} onValueChange={(value) => setFormData(prev => ({ ...prev, userId: value }))}>
-                <SelectTrigger data-testid="select-user">
-                  <SelectValue placeholder="Select user" />
-                </SelectTrigger>
-                <SelectContent>
-                  {SAMPLE_USERS.map((user) => (
-                    <SelectItem key={user.id} value={user.id}>{user.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="space-y-2">
+                <Label htmlFor="userId" className="text-sm font-medium text-foreground">Assigned To *</Label>
+                <Select value={formData.userId} onValueChange={(value) => setFormData(prev => ({ ...prev, userId: value }))}>
+                  <SelectTrigger data-testid="select-user" className="border-border/60 focus:border-primary/60">
+                    <SelectValue placeholder="Select user" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SAMPLE_USERS.map((user) => (
+                      <SelectItem key={user.id} value={user.id}>{user.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="type">Communication Type</Label>
-              <Select value={formData.type} onValueChange={(value) => setFormData(prev => ({ ...prev, type: value }))}>
-                <SelectTrigger data-testid="select-type">
-                  <SelectValue placeholder="Select type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {COMMUNICATION_TYPES.map((type) => (
-                    <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          {/* Communication Details Section */}
+          <div className="space-y-4">
+            <div className="border-b pb-2">
+              <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                <div className="h-5 w-5 rounded bg-primary/10 flex items-center justify-center">
+                  <span className="text-primary text-sm font-bold">2</span>
+                </div>
+                Communication Details
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1">Type, timing, and content information</p>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="type" className="text-sm font-medium text-foreground">Communication Type *</Label>
+                <Select value={formData.type} onValueChange={(value) => setFormData(prev => ({ ...prev, type: value as Communication['type'] }))}>
+                  <SelectTrigger data-testid="select-type" className="border-border/60 focus:border-primary/60">
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {COMMUNICATION_TYPES.map((type) => (
+                      <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="scheduledAt" className="text-sm font-medium text-foreground">Schedule Date & Time</Label>
+                <Input
+                  id="scheduledAt"
+                  type="datetime-local"
+                  value={formData.scheduledAt}
+                  onChange={(e) => setFormData(prev => ({ ...prev, scheduledAt: e.target.value }))}
+                  data-testid="input-scheduled-at"
+                  className="border-border/60 focus:border-primary/60"
+                />
+              </div>
             </div>
 
-            <div>
-              <Label htmlFor="scheduledAt">Schedule Date & Time</Label>
+            <div className="space-y-2">
+              <Label htmlFor="subject" className="text-sm font-medium text-foreground">Subject</Label>
               <Input
-                id="scheduledAt"
-                type="datetime-local"
-                value={formData.scheduledAt}
-                onChange={(e) => setFormData(prev => ({ ...prev, scheduledAt: e.target.value }))}
-                data-testid="input-scheduled-at"
+                id="subject"
+                value={formData.subject}
+                onChange={(e) => setFormData(prev => ({ ...prev, subject: e.target.value }))}
+                placeholder="Communication subject..."
+                data-testid="input-subject"
+                className="border-border/60 focus:border-primary/60"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="content" className="text-sm font-medium text-foreground">Content *</Label>
+              <Textarea
+                id="content"
+                value={formData.content}
+                onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
+                placeholder="Communication details..."
+                rows={5}
+                required
+                data-testid="input-content"
+                className="border-border/60 focus:border-primary/60 min-h-[120px] resize-none"
               />
             </div>
           </div>
 
-          <div>
-            <Label htmlFor="subject">Subject</Label>
-            <Input
-              id="subject"
-              value={formData.subject}
-              onChange={(e) => setFormData(prev => ({ ...prev, subject: e.target.value }))}
-              placeholder="Communication subject..."
-              data-testid="input-subject"
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="content">Content</Label>
-            <Textarea
-              id="content"
-              value={formData.content}
-              onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
-              placeholder="Communication details..."
-              rows={4}
-              required
-              data-testid="input-content"
-            />
-          </div>
-
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={mutation.isPending} data-testid="button-save-communication">
-              {mutation.isPending ? 'Saving...' : (communication ? 'Update' : 'Create')} Communication
-            </Button>
+          <div className="flex items-center justify-between pt-4 border-t">
+            <div className="text-sm text-muted-foreground">
+              {communication ? 'Created: ' + format(new Date(communication.createdAt), 'MMM d, yyyy') : 'All required fields must be completed'}
+            </div>
+            <div className="flex gap-3">
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="min-w-20">
+                Cancel
+              </Button>
+              <Button type="submit" disabled={mutation.isPending} data-testid="button-save-communication" className="min-w-32">
+                {mutation.isPending ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    Saving...
+                  </div>
+                ) : (
+                  (communication ? 'Update' : 'Create') + ' Communication'
+                )}
+              </Button>
+            </div>
           </div>
         </form>
       </DialogContent>
@@ -411,59 +453,65 @@ export default function CommunicationsManagement() {
   }
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-8 p-8">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold" data-testid="text-communications-title">
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold text-foreground tracking-tight" data-testid="text-communications-title">
             Communications
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground text-lg">
             Track all customer interactions and communications
           </p>
         </div>
-        <Button onClick={handleNewCommunication} data-testid="button-new-communication">
+        <Button onClick={handleNewCommunication} data-testid="button-new-communication" className="hover-elevate" size="default">
           <Plus className="h-4 w-4 mr-2" />
           New Communication
         </Button>
       </div>
 
-      <div className="flex items-center gap-4 flex-wrap">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search communications..."
-            className="pl-9"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            data-testid="input-search-communications"
-          />
+      <div className="bg-card border border-border/60 rounded-lg p-6 shadow-sm space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-foreground">Communication Controls</h3>
+          <p className="text-sm text-muted-foreground">Search and filter communications</p>
         </div>
-        
-        <Select value={typeFilter} onValueChange={setTypeFilter}>
-          <SelectTrigger className="w-[180px]" data-testid="select-type-filter">
-            <SelectValue placeholder="Filter by type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Types</SelectItem>
-            {COMMUNICATION_TYPES.map((type) => (
-              <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-4 flex-wrap">
+          <div className="relative flex-1 max-w-lg">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search communications by subject, content..."
+              className="pl-9 border-border/60 focus:border-primary/60"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              data-testid="input-search-communications"
+            />
+          </div>
+          
+          <Select value={typeFilter} onValueChange={setTypeFilter}>
+            <SelectTrigger className="w-[180px] border-border/60 focus:border-primary/60" data-testid="select-type-filter">
+              <SelectValue placeholder="Filter by type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Types</SelectItem>
+              {COMMUNICATION_TYPES.map((type) => (
+                <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-        <Select value={selectedLead} onValueChange={setSelectedLead}>
-          <SelectTrigger className="w-[200px]" data-testid="select-lead-filter">
-            <SelectValue placeholder="Filter by lead" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Leads</SelectItem>
-            {leads.map((lead) => (
-              <SelectItem key={lead.id} value={lead.id}>
-                {lead.firstName} {lead.lastName}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          <Select value={selectedLead} onValueChange={setSelectedLead}>
+            <SelectTrigger className="w-[200px] border-border/60 focus:border-primary/60" data-testid="select-lead-filter">
+              <SelectValue placeholder="Filter by lead" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Leads</SelectItem>
+              {leads.map((lead) => (
+                <SelectItem key={lead.id} value={lead.id}>
+                  {lead.firstName} {lead.lastName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <div className="space-y-4">
