@@ -6,54 +6,63 @@ import { Search, Filter, Plus, Download } from "lucide-react";
 
 export default function Pipeline() {
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-8 p-8">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold" data-testid="text-pipeline-title">
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold text-foreground tracking-tight" data-testid="text-pipeline-title">
             Sales Pipeline
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground text-lg">
             Manage your leads through each stage of the sales process
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <Button 
             variant="outline" 
-            size="sm"
+            size="default"
             data-testid="button-export-pipeline"
+            className="hover-elevate"
           >
             <Download className="h-4 w-4 mr-2" />
-            Export
+            Export Pipeline
           </Button>
           <Button 
-            size="sm"
+            size="default"
             data-testid="button-add-lead"
+            className="hover-elevate"
           >
             <Plus className="h-4 w-4 mr-2" />
-            Add Lead
+            Add New Lead
           </Button>
         </div>
       </div>
 
       <DashboardStats />
 
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search leads..."
-            className="pl-9"
-            data-testid="input-search-leads"
-          />
+      <div className="bg-card border border-border/60 rounded-lg p-6 shadow-sm space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-foreground">Pipeline Controls</h3>
+          <p className="text-sm text-muted-foreground">Search and filter your leads</p>
         </div>
-        <Button 
-          variant="outline" 
-          size="sm"
-          data-testid="button-filter-leads"
-        >
-          <Filter className="h-4 w-4 mr-2" />
-          Filters
-        </Button>
+        <div className="flex items-center gap-4">
+          <div className="relative flex-1 max-w-lg">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search leads by name, company, email..."
+              className="pl-9 border-border/60 focus:border-primary/60"
+              data-testid="input-search-leads"
+            />
+          </div>
+          <Button 
+            variant="outline" 
+            size="default"
+            data-testid="button-filter-leads"
+            className="hover-elevate min-w-28"
+          >
+            <Filter className="h-4 w-4 mr-2" />
+            Advanced Filters
+          </Button>
+        </div>
       </div>
 
       <LeadsPipeline />
