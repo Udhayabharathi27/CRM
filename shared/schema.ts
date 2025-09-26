@@ -13,6 +13,9 @@ import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+// Remove any import like this:
+// import { db } from './db'; // DELETE THIS LINE
+
 // Enums
 export const userRoleEnum = pgEnum('user_role', ['admin', 'sales', 'marketing', 'support']);
 export const leadStatusEnum = pgEnum('lead_status', ['new', 'contacted', 'proposal', 'closed_won', 'closed_lost']);
@@ -73,7 +76,7 @@ export const campaigns = pgTable("campaigns", {
 export const communications = pgTable("communications", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   leadId: varchar("lead_id").notNull().references(() => leads.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").notNull().references(() => users.id),
+  userId: varchar("user_id").references(() => users.id), // This should be nullable
   type: communicationTypeEnum("type").notNull(),
   subject: text("subject"),
   content: text("content").notNull(),
@@ -127,7 +130,11 @@ export const insertLeadSchema = createInsertSchema(leads).omit({
   updatedAt: true,
 });
 
-export const insertCampaignSchema = createInsertSchema(campaigns).omit({
+export const insertCampaignSchema = createInsertSchema(campaigns, {
+  scheduledAt: z.coerce.date().optional().nullable(),
+  sentAt: z.coerce.date().optional().nullable(),
+  createdAt: z.coerce.date().optional().nullable(),
+}).omit({
   id: true,
   createdAt: true,
   sentAt: true,
@@ -135,7 +142,11 @@ export const insertCampaignSchema = createInsertSchema(campaigns).omit({
   clickRate: true,
 });
 
-export const insertCommunicationSchema = createInsertSchema(communications).omit({
+export const insertCommunicationSchema = createInsertSchema(communications, {
+  scheduledAt: z.coerce.date().optional().nullable(),
+  completedAt: z.coerce.date().optional().nullable(),
+  createdAt: z.coerce.date().optional().nullable(),
+}).omit({
   id: true,
   createdAt: true,
 });

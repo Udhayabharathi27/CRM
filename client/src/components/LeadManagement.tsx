@@ -555,13 +555,14 @@ export default function LeadManagement() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: leads = [], isLoading, error } = useQuery({
-    queryKey: ['/api/leads', { search: searchTerm, status: statusFilter }],
-    queryFn: () => leadsApi.getAll({
-      search: searchTerm || undefined,
-      status: statusFilter === 'all' ? undefined : statusFilter || undefined,
-    }),
-  });
+ // In LeadManagement.tsx, replace the useQuery hook with this:
+const { data: leads = [], isLoading, error } = useQuery({
+  queryKey: ['/api/leads', { search: searchTerm, status: statusFilter }],
+  queryFn: () => leadsApi.getAll({
+    search: searchTerm || undefined,
+    status: statusFilter === 'all' ? undefined : statusFilter || undefined,
+  }),
+});
 
   const updateStatusMutation = useMutation({
     mutationFn: ({ leadId, status }: { leadId: string; status: Lead['status'] }) => 

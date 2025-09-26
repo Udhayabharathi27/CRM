@@ -15,13 +15,14 @@ import { Phone, Mail, MessageSquare, Calendar, Plus, Clock, CheckCircle } from "
 import { format } from "date-fns";
 
 // Sample users for assignment - using actual user IDs from database
+// Replace the hardcoded IDs with actual user IDs from your database
+// Replace the entire SAMPLE_USERS array with this:
 const SAMPLE_USERS = [
-  { id: '57aec392-41bc-44a8-ad61-8a7ed6afdf62', name: 'John Doe' },
-  { id: '6d3e500b-0ec1-405e-9bc6-aec4aca51822', name: 'Jane Smith' },
-  { id: '1d3e06fb-b1fe-40c1-b67d-a38f1becf695', name: 'Mike Johnson' },
-  { id: 'c177576b-322e-4610-83b0-95d34247c436', name: 'Admin User' },
+  { id: '57aec392-41bc-44a8-ad61-8a7ed6afdf62', name: 'Admin User' },
+  { id: '6d3e500b-0ec1-405e-9bc6-aec4aca51822', name: 'John Doe' },
+  { id: '1d3e06fb-b1fe-40c1-b67d-a38f1becf695', name: 'Jane Smith' },
+  { id: 'c177576b-322e-4610-83b0-95d34247c436', name: 'Mike Johnson' },
 ];
-
 const COMMUNICATION_TYPES = [
   { value: 'email', label: 'Email', icon: Mail },
   { value: 'call', label: 'Call', icon: Phone },
@@ -74,18 +75,22 @@ function QuickCommunicationDialog({ leadId, isOpen, onOpenChange, onSuccess }: Q
       });
     },
   });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    mutation.mutate({
-      leadId,
-      userId: SAMPLE_USERS[0].id, // Default to first user
-      type: formData.type,
-      subject: formData.subject,
-      content: formData.content,
-      scheduledAt: formData.scheduledAt ? new Date(formData.scheduledAt) : null,
-    });
+const handleSubmit = (e: React.FormEvent) => {
+  e.preventDefault();
+  
+  const communicationData = {
+    leadId,
+    userId: SAMPLE_USERS[0]?.id || null, // Use null if no user available
+    type: formData.type,
+    subject: formData.subject || null,
+    content: formData.content,
+    scheduledAt: formData.scheduledAt ? new Date(formData.scheduledAt).toISOString() : null,
   };
+
+  console.log('🔵 Submitting communication data:', communicationData);
+  
+  mutation.mutate(communicationData);
+};
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>

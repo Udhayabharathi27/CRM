@@ -3,8 +3,66 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertLeadSchema, insertCampaignSchema, insertCommunicationSchema } from "@shared/schema";
 import { z } from "zod";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
+import { users } from "@shared/schema";
+
+const sampleUsers = [
+  {
+    id: '57aec392-41bc-44a8-ad61-8a7ed6afdf62',
+    username: 'admin',
+    email: 'admin@example.com',
+    password: 'admin123',
+    firstName: 'Admin',
+    lastName: 'User',
+    role: 'admin',
+  },
+  {
+    id: '6d3e500b-0ec1-405e-9bc6-aec4aca51822',
+    username: 'john',
+    email: 'john@example.com',
+    password: 'john123',
+    firstName: 'John',
+    lastName: 'Doe',
+    role: 'sales',
+  },
+  {
+    id: '1d3e06fb-b1fe-40c1-b67d-a38f1becf695',
+    username: 'jane',
+    email: 'jane@example.com',
+    password: 'jane123',
+    firstName: 'Jane',
+    lastName: 'Smith',
+    role: 'sales',
+  },
+  {
+    id: 'c177576b-322e-4610-83b0-95d34247c436',
+    username: 'mike',
+    email: 'mike@example.com',
+    password: 'mike123',
+    firstName: 'Mike',
+    lastName: 'Johnson',
+    role: 'marketing',
+  },
+];
+
+async function seedUsers() {
+  for (const user of sampleUsers) {
+    const existing = await db.select().from(users).where(eq(users.id, user.id)).limit(1);
+    if (existing.length === 0) {
+      await db.insert(users).values(user);
+      console.log(`Inserted user: ${user.username}`);
+    } else {
+      console.log(`User ${user.username} already exists`);
+    }
+  }
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  if (process.env.NODE_ENV === 'development') {
+    await seedUsers();
+  }
+
   // Leads routes
   app.get("/api/leads", async (req, res) => {
     try {
@@ -20,6 +78,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Failed to fetch leads" });
     }
   });
+  // Debug endpoint to check users
+app.get("/api/debug/users", async (req, res) => {
+  try {
+    const users = await db.select().from(users);
+    console.log('📋 Available users:', users);
+    res.json(users);
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
 
   app.get("/api/leads/:id", async (req, res) => {
     try {
@@ -34,19 +103,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/leads", async (req, res) => {
-    try {
-      const validatedData = insertLeadSchema.parse(req.body);
-      const lead = await storage.createLead(validatedData);
-      res.status(201).json(lead);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: "Invalid lead data", details: error.errors });
-      }
-      console.error("Error creating lead:", error);
-      res.status(500).json({ error: "Failed to create lead" });
+ app.post("/api/leads", async (req, res) => {
+  try {
+    console.log('POST /api/leads - Request body:', req.body);
+    const validatedData = insertLeadSchema.parse(req.body);
+    console.log('Validated data:', validatedData);
+    const lead = await storage.createLead(validatedData);
+    console.log('Lead created successfully:', lead);
+    res.status(201).json(lead);
+  } catch (error) {
+    console.error('Error creating lead:', error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: "Invalid lead data", details: error.errors });
     }
-  });
+    res.status(500).json({ error: "Failed to create lead", details: error.message });
+  }
+});
 
   app.put("/api/leads/:id", async (req, res) => {
     try {
@@ -166,19 +238,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/communications", async (req, res) => {
-    try {
-      const validatedData = insertCommunicationSchema.parse(req.body);
-      const communication = await storage.createCommunication(validatedData);
-      res.status(201).json(communication);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: "Invalid communication data", details: error.errors });
-      }
-      console.error("Error creating communication:", error);
-      res.status(500).json({ error: "Failed to create communication" });
+ app.post("/api/communications", async (req, res) => {
+  try {
+    console.log('🔵 POST /api/communications - Raw request body:', JSON.stringify(req.body, null, 2));
+    
+    const validatedData = insertCommunicationSchema.parse(req.body);
+    console.log('✅ Validated communication data:', validatedData);
+    
+    const communication = await storage.createCommunication(validatedData);
+    console.log('✅ Communication created successfully:', communication);
+    
+    res.status(201).json(communication);
+  } catch (error) {
+    console.error('❌ Error creating communication:', error);
+    
+    if (error instanceof z.ZodError) {
+      console.error('📋 Communication validation errors:');
+      error.errors.forEach(e => {
+        console.error(`   Field: ${e.path.join('.')}, Error: ${e.message}, Received:`, e.received);
+      });
+      
+      return res.status(400).json({ 
+        error: "Invalid communication data", 
+        details: error.errors.map(e => ({
+          field: e.path.join('.'),
+          message: e.message,
+          received: e.received
+        }))
+      });
     }
-  });
+    
+    res.status(500).json({ error: "Failed to create communication", details: error.message });
+  }
+});
 
   app.put("/api/communications/:id", async (req, res) => {
     try {
@@ -209,36 +301,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Dashboard stats route
   app.get("/api/dashboard-stats", async (req, res) => {
-    try {
-      const leadsByStatus = await storage.getLeadsByStatus();
-      const allLeads = await storage.getLeads();
-      const allCampaigns = await storage.getCampaigns();
-      const allCommunications = await storage.getCommunications();
+  try {
+    const leadsByStatus = await storage.getLeadsByStatus();
+    const allLeads = await storage.getLeads();
+    const allCampaigns = await storage.getCampaigns();
+    const allCommunications = await storage.getCommunications();
 
-      const totalLeads = allLeads.length;
-      const pipelineValue = allLeads.reduce((sum, lead) => {
-        return sum + (parseFloat(lead.estimatedValue || '0') * (lead.probability || 0) / 100);
-      }, 0);
+    // DEBUG: Log lead data
+    console.log('🔍 Leads data for pipeline calculation:');
+    allLeads.forEach(lead => {
+      console.log(`Lead: ${lead.firstName} ${lead.lastName}, Value: ${lead.estimatedValue}, Probability: ${lead.probability}%, Status: ${lead.status}`);
+    });
+
+    // FIXED: Only include leads that are NOT closed_lost in pipeline value
+    const activeLeads = allLeads.filter(lead => lead.status !== 'closed_lost');
+    
+    const pipelineValue = activeLeads.reduce((sum, lead) => {
+      const value = parseFloat(lead.estimatedValue || '0');
+      const probability = lead.probability || 0;
+      const leadValue = value * (probability / 100);
       
-      const closedWonLeads = allLeads.filter(lead => lead.status === 'closed_won').length;
-      const conversionRate = totalLeads > 0 ? (closedWonLeads / totalLeads * 100) : 0;
+      console.log(`📊 ${lead.firstName} ${lead.lastName} (${lead.status}): $${value} × ${probability}% = $${leadValue}`);
+      
+      return sum + leadValue;
+    }, 0);
 
-      const stats = {
-        totalLeads,
-        pipelineValue: `$${(pipelineValue / 1000000).toFixed(1)}M`,
-        conversionRate: `${conversionRate.toFixed(1)}%`,
-        closedDeals: closedWonLeads,
-        leadsByStatus,
-        activeCampaigns: allCampaigns.filter(c => c.status === 'active').length,
-        totalCommunications: allCommunications.length,
-      };
+    console.log(`💰 Total Pipeline Value: $${pipelineValue}`);
+    console.log(`📈 Pipeline Value in Millions: $${(pipelineValue / 1000000).toFixed(1)}M`);
 
-      res.json(stats);
-    } catch (error) {
-      console.error("Error fetching dashboard stats:", error);
-      res.status(500).json({ error: "Failed to fetch dashboard statistics" });
-    }
-  });
+    const totalLeads = allLeads.length;
+    const closedWonLeads = allLeads.filter(lead => lead.status === 'closed_won').length;
+    const conversionRate = totalLeads > 0 ? (closedWonLeads / totalLeads * 100) : 0;
+
+    const stats = {
+      totalLeads,
+      pipelineValue: pipelineValue >= 1000000 ? `$${(pipelineValue / 1000000).toFixed(1)}M` : `$${Math.round(pipelineValue / 1000)}K`,
+      conversionRate: `${conversionRate.toFixed(1)}%`,
+      closedDeals: closedWonLeads,
+      leadsByStatus,
+      activeCampaigns: allCampaigns.filter(c => c.status === 'active').length,
+      totalCommunications: allCommunications.length,
+    };
+
+    console.log('📈 Final stats:', stats);
+    res.json(stats);
+  } catch (error) {
+    console.error("Error fetching dashboard stats:", error);
+    res.status(500).json({ error: "Failed to fetch dashboard statistics" });
+  }
+});
 
   const httpServer = createServer(app);
   return httpServer;

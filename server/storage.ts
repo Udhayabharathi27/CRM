@@ -1,235 +1,212 @@
-import { 
-  users, 
-  leads, 
-  campaigns, 
-  communications,
-  type User, 
-  type InsertUser,
-  type Lead,
-  type InsertLead,
-  type Campaign,
-  type InsertCampaign,
-  type Communication,
-  type InsertCommunication
-} from "@shared/schema";
-import { db } from "./db";
-import { eq, desc, and, or, like, count } from "drizzle-orm";
+// storage.ts
+import { db } from './db';
+import { leads, campaigns, communications } from '@shared/schema';
+import { eq, and, or, like, sql } from 'drizzle-orm';
+import type { InsertLead, InsertCampaign, InsertCommunication } from '@shared/schema';
 
-export interface IStorage {
-  // Users
-  getUser(id: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  getUserByEmail(email: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
-  
-  // Leads
-  getLeads(filters?: { status?: string; assignedTo?: string; search?: string }): Promise<Lead[]>;
-  getLead(id: string): Promise<Lead | undefined>;
-  createLead(lead: InsertLead): Promise<Lead>;
-  updateLead(id: string, updates: Partial<InsertLead>): Promise<Lead>;
-  deleteLead(id: string): Promise<boolean>;
-  getLeadsByStatus(): Promise<{ status: string; count: number; totalValue: number }[]>;
-  
-  // Campaigns
-  getCampaigns(filters?: { status?: string; createdBy?: string }): Promise<Campaign[]>;
-  getCampaign(id: string): Promise<Campaign | undefined>;
-  createCampaign(campaign: InsertCampaign): Promise<Campaign>;
-  updateCampaign(id: string, updates: Partial<InsertCampaign>): Promise<Campaign>;
-  deleteCampaign(id: string): Promise<boolean>;
-  
-  // Communications
-  getCommunications(leadId?: string): Promise<Communication[]>;
-  createCommunication(communication: InsertCommunication): Promise<Communication>;
-  updateCommunication(id: string, updates: Partial<InsertCommunication>): Promise<Communication>;
-  deleteCommunication(id: string): Promise<boolean>;
-}
-
-export class DatabaseStorage implements IStorage {
-  // Users
-  async getUser(id: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user || undefined;
-  }
-
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
-    return user || undefined;
-  }
-
-  async getUserByEmail(email: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.email, email));
-    return user || undefined;
-  }
-
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db
-      .insert(users)
-      .values(insertUser)
-      .returning();
-    return user;
-  }
-
-  // Leads
-  async getLeads(filters?: { status?: string; assignedTo?: string; search?: string }): Promise<Lead[]> {
-    const baseQuery = db.select().from(leads);
-    
-    const conditions = [];
-    
-    if (filters?.status) {
-      conditions.push(eq(leads.status, filters.status as any));
+export const storage = {
+  // Leads operations
+  async getLeads(filters?: { status?: string; assignedTo?: string; search?: string }) {
+    try {
+      let query = db.select().from(leads);
+      
+      if (filters?.status) {
+        query = query.where(eq(leads.status, filters.status));
+      }
+      
+      if (filters?.assignedTo) {
+        query = query.where(eq(leads.assignedTo, filters.assignedTo));
+      }
+      
+      if (filters?.search) {
+        query = query.where(
+          or(
+            like(leads.firstName, `%${filters.search}%`),
+            like(leads.lastName, `%${filters.search}%`),
+            like(leads.email, `%${filters.search}%`),
+            like(leads.company, `%${filters.search}%`)
+          )
+        );
+      }
+      
+      return await query;
+    } catch (error) {
+      console.error('Error in getLeads:', error);
+      throw error;
     }
-    
-    if (filters?.assignedTo) {
-      conditions.push(eq(leads.assignedTo, filters.assignedTo));
+  },
+
+  async getLead(id: string) {
+    try {
+      const result = await db.select().from(leads).where(eq(leads.id, id));
+      return result[0] || null;
+    } catch (error) {
+      console.error('Error in getLead:', error);
+      throw error;
     }
-    
-    if (filters?.search) {
-      conditions.push(
-        or(
-          like(leads.firstName, `%${filters.search}%`),
-          like(leads.lastName, `%${filters.search}%`),
-          like(leads.company, `%${filters.search}%`),
-          like(leads.email, `%${filters.search}%`)
-        )
-      );
+  },
+
+  async createLead(data: InsertLead) {
+    try {
+      console.log('Creating lead with data:', data);
+      const result = await db.insert(leads).values(data).returning();
+      console.log('Lead created successfully:', result[0]);
+      return result[0];
+    } catch (error) {
+      console.error('Error in createLead:', error);
+      throw error;
     }
-    
-    if (conditions.length > 0) {
-      return baseQuery.where(and(...conditions)).orderBy(desc(leads.updatedAt));
+  },
+
+  async updateLead(id: string, data: Partial<InsertLead>) {
+    try {
+      const result = await db.update(leads)
+        .set({ ...data, updatedAt: new Date() })
+        .where(eq(leads.id, id))
+        .returning();
+      return result[0] || null;
+    } catch (error) {
+      console.error('Error in updateLead:', error);
+      throw error;
     }
-    
-    return baseQuery.orderBy(desc(leads.updatedAt));
-  }
+  },
 
-  async getLead(id: string): Promise<Lead | undefined> {
-    const [lead] = await db.select().from(leads).where(eq(leads.id, id));
-    return lead || undefined;
-  }
-
-  async createLead(insertLead: InsertLead): Promise<Lead> {
-    const [lead] = await db
-      .insert(leads)
-      .values({
-        ...insertLead,
-        updatedAt: new Date(),
-      })
-      .returning();
-    return lead;
-  }
-
-  async updateLead(id: string, updates: Partial<InsertLead>): Promise<Lead> {
-    const [lead] = await db
-      .update(leads)
-      .set({
-        ...updates,
-        updatedAt: new Date(),
-      })
-      .where(eq(leads.id, id))
-      .returning();
-    return lead;
-  }
-
-  async deleteLead(id: string): Promise<boolean> {
-    const result = await db.delete(leads).where(eq(leads.id, id));
-    return (result.rowCount ?? 0) > 0;
-  }
-
-  async getLeadsByStatus(): Promise<{ status: string; count: number; totalValue: number }[]> {
-    const result = await db
-      .select({
-        status: leads.status,
-        count: count(),
-      })
-      .from(leads)
-      .groupBy(leads.status);
-    
-    return result.map(row => ({
-      status: row.status,
-      count: row.count,
-      totalValue: 0, // TODO: implement sum calculation
-    }));
-  }
-
-  // Campaigns
-  async getCampaigns(filters?: { status?: string; createdBy?: string }): Promise<Campaign[]> {
-    const baseQuery = db.select().from(campaigns);
-    
-    const conditions = [];
-    
-    if (filters?.status) {
-      conditions.push(eq(campaigns.status, filters.status as any));
+  async deleteLead(id: string) {
+    try {
+      const result = await db.delete(leads).where(eq(leads.id, id));
+      return result.rowCount > 0;
+    } catch (error) {
+      console.error('Error in deleteLead:', error);
+      throw error;
     }
-    
-    if (filters?.createdBy) {
-      conditions.push(eq(campaigns.createdBy, filters.createdBy));
+  },
+
+  async getLeadsByStatus() {
+    try {
+      const result = await db
+        .select({
+          status: leads.status,
+          count: sql<number>`count(*)`
+        })
+        .from(leads)
+        .groupBy(leads.status);
+      
+      return result;
+    } catch (error) {
+      console.error('Error in getLeadsByStatus:', error);
+      throw error;
     }
-    
-    if (conditions.length > 0) {
-      return baseQuery.where(and(...conditions)).orderBy(desc(campaigns.createdAt));
+  },
+
+  // Campaigns operations
+  async getCampaigns(filters?: { status?: string; createdBy?: string }) {
+    try {
+      let query = db.select().from(campaigns);
+      
+      if (filters?.status) {
+        query = query.where(eq(campaigns.status, filters.status));
+      }
+      
+      if (filters?.createdBy) {
+        query = query.where(eq(campaigns.createdBy, filters.createdBy));
+      }
+      
+      return await query;
+    } catch (error) {
+      console.error('Error in getCampaigns:', error);
+      throw error;
     }
-    
-    return baseQuery.orderBy(desc(campaigns.createdAt));
-  }
+  },
 
-  async getCampaign(id: string): Promise<Campaign | undefined> {
-    const [campaign] = await db.select().from(campaigns).where(eq(campaigns.id, id));
-    return campaign || undefined;
-  }
-
-  async createCampaign(insertCampaign: InsertCampaign): Promise<Campaign> {
-    const [campaign] = await db
-      .insert(campaigns)
-      .values(insertCampaign)
-      .returning();
-    return campaign;
-  }
-
-  async updateCampaign(id: string, updates: Partial<InsertCampaign>): Promise<Campaign> {
-    const [campaign] = await db
-      .update(campaigns)
-      .set(updates)
-      .where(eq(campaigns.id, id))
-      .returning();
-    return campaign;
-  }
-
-  async deleteCampaign(id: string): Promise<boolean> {
-    const result = await db.delete(campaigns).where(eq(campaigns.id, id));
-    return (result.rowCount ?? 0) > 0;
-  }
-
-  // Communications
-  async getCommunications(leadId?: string): Promise<Communication[]> {
-    const baseQuery = db.select().from(communications);
-    
-    if (leadId) {
-      return baseQuery.where(eq(communications.leadId, leadId)).orderBy(desc(communications.createdAt));
+  async getCampaign(id: string) {
+    try {
+      const result = await db.select().from(campaigns).where(eq(campaigns.id, id));
+      return result[0] || null;
+    } catch (error) {
+      console.error('Error in getCampaign:', error);
+      throw error;
     }
-    
-    return baseQuery.orderBy(desc(communications.createdAt));
-  }
+  },
 
-  async createCommunication(insertCommunication: InsertCommunication): Promise<Communication> {
-    const [communication] = await db
-      .insert(communications)
-      .values(insertCommunication)
-      .returning();
-    return communication;
-  }
+  async createCampaign(data: InsertCampaign) {
+    try {
+      const result = await db.insert(campaigns).values(data).returning();
+      return result[0];
+    } catch (error) {
+      console.error('Error in createCampaign:', error);
+      throw error;
+    }
+  },
 
-  async updateCommunication(id: string, updates: Partial<InsertCommunication>): Promise<Communication> {
-    const [communication] = await db
-      .update(communications)
-      .set(updates)
-      .where(eq(communications.id, id))
-      .returning();
-    return communication;
-  }
+  async updateCampaign(id: string, data: Partial<InsertCampaign>) {
+    try {
+      const result = await db.update(campaigns)
+        .set(data)
+        .where(eq(campaigns.id, id))
+        .returning();
+      return result[0] || null;
+    } catch (error) {
+      console.error('Error in updateCampaign:', error);
+      throw error;
+    }
+  },
 
-  async deleteCommunication(id: string): Promise<boolean> {
-    const result = await db.delete(communications).where(eq(communications.id, id));
-    return (result.rowCount ?? 0) > 0;
-  }
-}
+  async deleteCampaign(id: string) {
+    try {
+      const result = await db.delete(campaigns).where(eq(campaigns.id, id));
+      return result.rowCount > 0;
+    } catch (error) {
+      console.error('Error in deleteCampaign:', error);
+      throw error;
+    }
+  },
 
-export const storage = new DatabaseStorage();
+  // Communications operations
+  async getCommunications(leadId?: string) {
+    try {
+      let query = db.select().from(communications);
+      
+      if (leadId) {
+        query = query.where(eq(communications.leadId, leadId));
+      }
+      
+      return await query;
+    } catch (error) {
+      console.error('Error in getCommunications:', error);
+      throw error;
+    }
+  },
+
+  async createCommunication(data: InsertCommunication) {
+    try {
+      const result = await db.insert(communications).values(data).returning();
+      return result[0];
+    } catch (error) {
+      console.error('Error in createCommunication:', error);
+      throw error;
+    }
+  },
+
+  async updateCommunication(id: string, data: Partial<InsertCommunication>) {
+    try {
+      const result = await db.update(communications)
+        .set(data)
+        .where(eq(communications.id, id))
+        .returning();
+      return result[0] || null;
+    } catch (error) {
+      console.error('Error in updateCommunication:', error);
+      throw error;
+    }
+  },
+
+  async deleteCommunication(id: string) {
+    try {
+      const result = await db.delete(communications).where(eq(communications.id, id));
+      return result.rowCount > 0;
+    } catch (error) {
+      console.error('Error in deleteCommunication:', error);
+      throw error;
+    }
+  }
+};

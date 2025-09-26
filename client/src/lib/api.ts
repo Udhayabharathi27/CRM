@@ -2,8 +2,7 @@ import type { Lead, InsertLead, Campaign, InsertCampaign, Communication, InsertC
 
 const API_BASE = '';
 
-// Helper function for API requests
-async function apiRequest(endpoint: string, options?: RequestInit) {
+async function apiRequest<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const url = `${API_BASE}${endpoint}`;
   const response = await fetch(url, {
     headers: {
@@ -14,20 +13,31 @@ async function apiRequest(endpoint: string, options?: RequestInit) {
   });
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ error: 'An error occurred' }));
-    throw new Error(error.error || `HTTP ${response.status}`);
+    // Try to get detailed error message from response
+    let errorMessage = `HTTP ${response.status}`;
+    try {
+      const errorData = await response.json();
+      errorMessage = errorData.error || errorData.message || errorMessage;
+      if (errorData.details) {
+        errorMessage += ` - ${JSON.stringify(errorData.details)}`;
+      }
+    } catch {
+      // If we can't parse JSON, use status text
+      errorMessage = response.statusText || errorMessage;
+    }
+    throw new Error(errorMessage);
   }
 
-  // Handle 204 No Content responses (like DELETE operations)
   if (response.status === 204) {
-    return undefined;
+    return undefined as T;
   }
 
-  return response.json();
+  return response.json() as Promise<T>;
 }
 
-// Leads API
+// Leads API - FIXED: Match the function names used in LeadManagement.tsx
 export const leadsApi = {
+  // FIX: LeadManagement.tsx calls getAll() with filters object
   getAll: (filters?: { status?: string; assignedTo?: string; search?: string }): Promise<Lead[]> => {
     const params = new URLSearchParams();
     if (filters?.status) params.append('status', filters.status);
@@ -35,35 +45,32 @@ export const leadsApi = {
     if (filters?.search) params.append('search', filters.search);
     
     const query = params.toString();
-    return apiRequest(`/api/leads${query ? `?${query}` : ''}`);
+    return apiRequest<Lead[]>(`/api/leads${query ? `?${query}` : ''}`);
   },
 
-  getById: (id: string): Promise<Lead> => {
-    return apiRequest(`/api/leads/${id}`);
+  // FIX: LeadManagement.tsx calls get(id) not getById(id)
+  get: (id: string): Promise<Lead> => {
+    return apiRequest<Lead>(`/api/leads/${id}`);
   },
 
   create: (lead: InsertLead): Promise<Lead> => {
-    return apiRequest('/api/leads', {
+    return apiRequest<Lead>('/api/leads', {
       method: 'POST',
       body: JSON.stringify(lead),
     });
   },
 
   update: (id: string, updates: Partial<InsertLead>): Promise<Lead> => {
-    return apiRequest(`/api/leads/${id}`, {
+    return apiRequest<Lead>(`/api/leads/${id}`, {
       method: 'PUT', 
       body: JSON.stringify(updates),
     });
   },
 
   delete: (id: string): Promise<void> => {
-    return apiRequest(`/api/leads/${id}`, {
+    return apiRequest<void>(`/api/leads/${id}`, {
       method: 'DELETE',
     });
-  },
-
-  getByStatus: (): Promise<{ status: string; count: number; totalValue: number }[]> => {
-    return apiRequest('/api/leads-by-status');
   },
 };
 
@@ -75,29 +82,29 @@ export const campaignsApi = {
     if (filters?.createdBy) params.append('createdBy', filters.createdBy);
     
     const query = params.toString();
-    return apiRequest(`/api/campaigns${query ? `?${query}` : ''}`);
+    return apiRequest<Campaign[]>(`/api/campaigns${query ? `?${query}` : ''}`);
   },
 
-  getById: (id: string): Promise<Campaign> => {
-    return apiRequest(`/api/campaigns/${id}`);
+  get: (id: string): Promise<Campaign> => {
+    return apiRequest<Campaign>(`/api/campaigns/${id}`);
   },
 
   create: (campaign: InsertCampaign): Promise<Campaign> => {
-    return apiRequest('/api/campaigns', {
+    return apiRequest<Campaign>('/api/campaigns', {
       method: 'POST',
       body: JSON.stringify(campaign),
     });
   },
 
   update: (id: string, updates: Partial<InsertCampaign>): Promise<Campaign> => {
-    return apiRequest(`/api/campaigns/${id}`, {
+    return apiRequest<Campaign>(`/api/campaigns/${id}`, {
       method: 'PUT',
       body: JSON.stringify(updates),
     });
   },
 
   delete: (id: string): Promise<void> => {
-    return apiRequest(`/api/campaigns/${id}`, {
+    return apiRequest<void>(`/api/campaigns/${id}`, {
       method: 'DELETE',
     });
   },
@@ -110,25 +117,25 @@ export const communicationsApi = {
     if (leadId) params.append('leadId', leadId);
     
     const query = params.toString();
-    return apiRequest(`/api/communications${query ? `?${query}` : ''}`);
+    return apiRequest<Communication[]>(`/api/communications${query ? `?${query}` : ''}`);
   },
 
   create: (communication: InsertCommunication): Promise<Communication> => {
-    return apiRequest('/api/communications', {
+    return apiRequest<Communication>('/api/communications', {
       method: 'POST',
       body: JSON.stringify(communication),
     });
   },
 
   update: (id: string, updates: Partial<InsertCommunication>): Promise<Communication> => {
-    return apiRequest(`/api/communications/${id}`, {
+    return apiRequest<Communication>(`/api/communications/${id}`, {
       method: 'PUT',
       body: JSON.stringify(updates),
     });
   },
 
   delete: (id: string): Promise<void> => {
-    return apiRequest(`/api/communications/${id}`, {
+    return apiRequest<void>(`/api/communications/${id}`, {
       method: 'DELETE',
     });
   },
@@ -141,7 +148,7 @@ export const dashboardApi = {
     pipelineValue: string;
     conversionRate: string;
     closedDeals: number;
-    leadsByStatus: { status: string; count: number; totalValue: number }[];
+    leadsByStatus: { status: string; count: number }[];
     activeCampaigns: number;
     totalCommunications: number;
   }> => {
