@@ -7,8 +7,7 @@ export default defineConfig({
   plugins: [
     react(),
     runtimeErrorOverlay(),
-    ...(process.env.NODE_ENV !== "production" &&
-    process.env.REPL_ID !== undefined
+    ...(process.env.NODE_ENV !== "production" && process.env.REPL_ID !== undefined
       ? [
           await import("@replit/vite-plugin-cartographer").then((m) =>
             m.cartographer(),
@@ -34,4 +33,5 @@ export default defineConfig({
       deny: ["**/.*"],
     },
   },
+  base: '/solar-crm/', // Add this line, replace 'solar-crm' with your repo name
 });
