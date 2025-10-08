@@ -13,7 +13,6 @@ async function apiRequest<T>(endpoint: string, options?: RequestInit): Promise<T
   });
 
   if (!response.ok) {
-    // Try to get detailed error message from response
     let errorMessage = `HTTP ${response.status}`;
     try {
       const errorData = await response.json();
@@ -22,7 +21,6 @@ async function apiRequest<T>(endpoint: string, options?: RequestInit): Promise<T
         errorMessage += ` - ${JSON.stringify(errorData.details)}`;
       }
     } catch {
-      // If we can't parse JSON, use status text
       errorMessage = response.statusText || errorMessage;
     }
     throw new Error(errorMessage);
@@ -35,9 +33,7 @@ async function apiRequest<T>(endpoint: string, options?: RequestInit): Promise<T
   return response.json() as Promise<T>;
 }
 
-// Leads API - FIXED: Match the function names used in LeadManagement.tsx
 export const leadsApi = {
-  // FIX: LeadManagement.tsx calls getAll() with filters object
   getAll: (filters?: { status?: string; assignedTo?: string; search?: string }): Promise<Lead[]> => {
     const params = new URLSearchParams();
     if (filters?.status) params.append('status', filters.status);
@@ -48,7 +44,6 @@ export const leadsApi = {
     return apiRequest<Lead[]>(`/api/leads${query ? `?${query}` : ''}`);
   },
 
-  // FIX: LeadManagement.tsx calls get(id) not getById(id)
   get: (id: string): Promise<Lead> => {
     return apiRequest<Lead>(`/api/leads/${id}`);
   },
@@ -73,8 +68,26 @@ export const leadsApi = {
     });
   },
 };
-
-// Campaigns API
+// Add to api.ts, after the smsApi
+export const emailApi = {
+  send: (data: {
+    communicationId: string;
+    leadId: string;
+    to: string;
+    subject: string;
+    text?: string;
+    html?: string;
+  }): Promise<{
+    success: boolean;
+    message?: string;
+    data?: any;
+  }> => {
+    return apiRequest('/api/email/send', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+};
 export const campaignsApi = {
   getAll: (filters?: { status?: string; createdBy?: string }): Promise<Campaign[]> => {
     const params = new URLSearchParams();
@@ -110,7 +123,6 @@ export const campaignsApi = {
   },
 };
 
-// Communications API
 export const communicationsApi = {
   getAll: (leadId?: string): Promise<Communication[]> => {
     const params = new URLSearchParams();
@@ -141,7 +153,40 @@ export const communicationsApi = {
   },
 };
 
-// Dashboard API
+export const smsApi = {
+  send: (data: {
+    communicationId: string;
+    leadId: string;
+    to: string;
+    body: string;
+  }): Promise<{
+    success: boolean;
+    messageId?: string;
+    data?: any;
+  }> => {
+    return apiRequest('/api/sms/send', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+};
+export const callsApi = {
+  makeCall: (data: {
+    communicationId: string;
+    leadId: string;
+    to: string;
+  }): Promise<{
+    success: boolean;
+    callSid?: string;
+    data?: any;
+  }> => {
+    return apiRequest('/api/calls/make-call', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+};
+
 export const dashboardApi = {
   getStats: (): Promise<{
     totalLeads: number;

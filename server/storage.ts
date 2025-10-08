@@ -1,10 +1,52 @@
-// storage.ts
 import { db } from './db';
-import { leads, campaigns, communications } from '@shared/schema';
+import { 
+  leads, 
+  campaigns, 
+  communications, 
+  communicationMedium 
+} from '@shared/schema';
 import { eq, and, or, like, sql } from 'drizzle-orm';
-import type { InsertLead, InsertCampaign, InsertCommunication } from '@shared/schema';
+import type { 
+  InsertLead, 
+  InsertCampaign, 
+  InsertCommunication, 
+  InsertCommunicationMedium 
+} from '@shared/schema';
 
-export const storage = {
+export interface IStorage {
+  // Leads operations
+  getLeads(filters?: { status?: string; assignedTo?: string; search?: string }): Promise<any[]>;
+  getLead(id: string): Promise<any | null>;
+  createLead(data: InsertLead): Promise<any>;
+  updateLead(id: string, data: Partial<InsertLead>): Promise<any | null>;
+  deleteLead(id: string): Promise<boolean>;
+  getLeadsByStatus(): Promise<any[]>;
+
+
+  // Campaigns operations
+  getCampaigns(filters?: { status?: string; createdBy?: string }): Promise<any[]>;
+  getCampaign(id: string): Promise<any | null>;
+  createCampaign(data: InsertCampaign): Promise<any>;
+  updateCampaign(id: string, data: Partial<InsertCampaign>): Promise<any | null>;
+  deleteCampaign(id: string): Promise<boolean>;
+
+  // Communications operations
+  getCommunications(leadId?: string): Promise<any[]>;
+  createCommunication(data: InsertCommunication): Promise<any>;
+  updateCommunication(id: string, data: Partial<InsertCommunication>): Promise<any | null>;
+  deleteCommunication(id: string): Promise<boolean>;
+
+  // Communication Medium operations
+  createCommunicationMedium(data: InsertCommunicationMedium): Promise<any>;
+  getCommunicationMediumByCommunicationId(communicationId: string): Promise<any | undefined>;
+  getCommunicationMediumByMessageId(mediumMessageId: string): Promise<any | undefined>;
+  getAllCommunicationMedium(): Promise<any[]>;
+  // Add to IStorage interface
+updateCommunicationMedium(id: string, data: Partial<InsertCommunicationMedium>): Promise<any | null>;
+getCommunicationMediumById(id: string): Promise<any | undefined>;
+}
+
+export const storage: IStorage = {
   // Leads operations
   async getLeads(filters?: { status?: string; assignedTo?: string; search?: string }) {
     try {
@@ -206,6 +248,82 @@ export const storage = {
       return result.rowCount > 0;
     } catch (error) {
       console.error('Error in deleteCommunication:', error);
+      throw error;
+    }
+  },
+
+  // Communication Medium operations - FIXED
+  async createCommunicationMedium(data: InsertCommunicationMedium) {
+    try {
+      const result = await db.insert(communicationMedium).values(data).returning();
+      console.log('✅ Communication medium record created:', result[0]);
+      return result[0];
+    } catch (error) {
+      console.error('Error in createCommunicationMedium:', error);
+      throw error;
+    }
+  },
+
+  async getCommunicationMediumByCommunicationId(communicationId: string) {
+    try {
+      const [medium] = await db
+        .select()
+        .from(communicationMedium)
+        .where(eq(communicationMedium.communicationId, communicationId))
+        .limit(1);
+      return medium;
+    } catch (error) {
+      console.error('Error in getCommunicationMediumByCommunicationId:', error);
+      throw error;
+    }
+  },
+
+  async getCommunicationMediumByMessageId(mediumMessageId: string) {
+    try {
+      const [medium] = await db
+        .select()
+        .from(communicationMedium)
+        .where(eq(communicationMedium.mediumMessageId, mediumMessageId))
+        .limit(1);
+      return medium;
+    } catch (error) {
+      console.error('Error in getCommunicationMediumByMessageId:', error);
+      throw error;
+    }
+  },
+  // Add to storage implementation
+async updateCommunicationMedium(id: string, data: Partial<InsertCommunicationMedium>) {
+  try {
+    const result = await db.update(communicationMedium)
+      .set(data)
+      .where(eq(communicationMedium.id, id))
+      .returning();
+    return result[0] || null;
+  } catch (error) {
+    console.error('Error in updateCommunicationMedium:', error);
+    throw error;
+  }
+},
+
+async getCommunicationMediumById(id: string) {
+  try {
+    const [medium] = await db
+      .select()
+      .from(communicationMedium)
+      .where(eq(communicationMedium.id, id))
+      .limit(1);
+    return medium;
+  } catch (error) {
+    console.error('Error in getCommunicationMediumById:', error);
+    throw error;
+  }
+},
+
+  async getAllCommunicationMedium() {
+    try {
+      return await db.select().from(communicationMedium).orderBy(communicationMedium.createdAt);
+    } catch (error) {
+      console.error('Error in getAllCommunicationMedium:', error);
       throw error;
     }
   }

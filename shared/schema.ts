@@ -13,14 +13,11 @@ import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// Remove any import like this:
-// import { db } from './db'; // DELETE THIS LINE
-
 // Enums
 export const userRoleEnum = pgEnum('user_role', ['admin', 'sales', 'marketing', 'support']);
 export const leadStatusEnum = pgEnum('lead_status', ['new', 'contacted', 'proposal', 'closed_won', 'closed_lost']);
 export const campaignStatusEnum = pgEnum('campaign_status', ['draft', 'scheduled', 'active', 'paused', 'completed']);
-export const communicationTypeEnum = pgEnum('communication_type', ['email', 'sms', 'call', 'meeting', 'note']);
+export const communicationTypeEnum = pgEnum('communication_type', ['email', 'sms', 'call', 'meeting', 'note', 'whatsapp']);
 
 // Users table
 export const users = pgTable("users", {
@@ -48,9 +45,9 @@ export const leads = pgTable("leads", {
   state: text("state"),
   zipCode: text("zip_code"),
   status: leadStatusEnum("status").notNull().default('new'),
-  source: text("source"), // web form, referral, cold call, etc.
+  source: text("source"),
   estimatedValue: decimal("estimated_value", { precision: 10, scale: 2 }),
-  probability: integer("probability").default(25), // percentage
+  probability: integer("probability").default(25),
   assignedTo: varchar("assigned_to").references(() => users.id),
   notes: text("notes"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -76,13 +73,28 @@ export const campaigns = pgTable("campaigns", {
 export const communications = pgTable("communications", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   leadId: varchar("lead_id").notNull().references(() => leads.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id), // This should be nullable
+  userId: varchar("user_id").references(() => users.id),
   type: communicationTypeEnum("type").notNull(),
   subject: text("subject"),
   content: text("content").notNull(),
   scheduledAt: timestamp("scheduled_at"),
   completedAt: timestamp("completed_at"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// Communication Medium table - FIXED with snake_case column names
+// In schema.ts, update the communicationMedium table
+export const communicationMedium = pgTable("communication_medium", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  leadId: varchar("lead_id").notNull().references(() => leads.id, { onDelete: 'cascade' }),
+  communicationId: varchar("communication_id").notNull().references(() => communications.id, { onDelete: 'cascade' }),
+  mediumType: text("medium_type").notNull(),
+  mediumId: varchar("medium_id"),
+  mediumMessageId: text("medium_message_id"),
+  status: text("status").default('sent'), // Add this column with default value
+  response: text("response"), // Add this column
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
 // Relations
@@ -115,6 +127,17 @@ export const communicationsRelations = relations(communications, ({ one }) => ({
   user: one(users, {
     fields: [communications.userId],
     references: [users.id],
+  }),
+}));
+
+export const communicationMediumRelations = relations(communicationMedium, ({ one }) => ({
+  lead: one(leads, {
+    fields: [communicationMedium.leadId],
+    references: [leads.id],
+  }),
+  communication: one(communications, {
+    fields: [communicationMedium.communicationId],
+    references: [communications.id],
   }),
 }));
 
@@ -151,6 +174,14 @@ export const insertCommunicationSchema = createInsertSchema(communications, {
   createdAt: true,
 });
 
+export const insertCommunicationMediumSchema = createInsertSchema(communicationMedium, {
+  createdAt: z.coerce.date().optional().nullable(),
+  updatedAt: z.coerce.date().optional().nullable(),
+}).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -160,3 +191,5 @@ export type Campaign = typeof campaigns.$inferSelect;
 export type InsertCampaign = z.infer<typeof insertCampaignSchema>;
 export type Communication = typeof communications.$inferSelect;
 export type InsertCommunication = z.infer<typeof insertCommunicationSchema>;
+export type CommunicationMedium = typeof communicationMedium.$inferSelect;
+export type InsertCommunicationMedium = z.infer<typeof insertCommunicationMediumSchema>;

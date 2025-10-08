@@ -6,7 +6,7 @@ async function seed() {
   console.log("Starting database seed...");
 
   try {
-    // Create users
+   
     const hashedPassword = await bcrypt.hash("password123", 10);
     
     const createdUsers = await db.insert(users).values([
@@ -46,7 +46,7 @@ async function seed() {
 
     console.log(`Created ${createdUsers.length} users`);
 
-    // Create leads
+    
     const createdLeads = await db.insert(leads).values([
       {
         firstName: "Sarah",
@@ -62,7 +62,7 @@ async function seed() {
         source: "web form",
         estimatedValue: "25000.00",
         probability: 25,
-        assignedTo: createdUsers[1].id, // John Doe
+        assignedTo: createdUsers[1].id, 
         notes: "Interested in commercial solar installation for office building"
       },
       {
@@ -79,7 +79,7 @@ async function seed() {
         source: "referral",
         estimatedValue: "67000.00",
         probability: 50,
-        assignedTo: createdUsers[1].id, // John Doe
+        assignedTo: createdUsers[1].id, 
         notes: "Needs proposal for 40kW system. Decision maker confirmed."
       },
       {
@@ -96,7 +96,7 @@ async function seed() {
         source: "cold call",
         estimatedValue: "156000.00",
         probability: 80,
-        assignedTo: createdUsers[3].id, // Mike Johnson
+        assignedTo: createdUsers[3].id, 
         notes: "Large commercial project. Proposal sent, waiting for board approval."
       },
       {
@@ -113,7 +113,7 @@ async function seed() {
         source: "trade show",
         estimatedValue: "89000.00",
         probability: 75,
-        assignedTo: createdUsers[3].id, // Mike Johnson
+        assignedTo: createdUsers[3].id, 
         notes: "Ready to move forward. Financing options discussed."
       },
       {
@@ -130,14 +130,14 @@ async function seed() {
         source: "referral",
         estimatedValue: "125000.00",
         probability: 100,
-        assignedTo: createdUsers[1].id, // John Doe
+        assignedTo: createdUsers[1].id, 
         notes: "Contract signed! Installation scheduled for next month."
       }
     ]).returning();
 
     console.log(`Created ${createdLeads.length} leads`);
 
-    // Create campaigns
+   
     const createdCampaigns = await db.insert(campaigns).values([
       {
         name: "Spring Solar Promotion 2024",
@@ -145,7 +145,7 @@ async function seed() {
         content: "Take advantage of our spring promotion and federal tax incentives...",
         status: "active",
         scheduledAt: new Date("2024-03-15T09:00:00Z"),
-        createdBy: createdUsers[2].id, // Jane Smith
+        createdBy: createdUsers[2].id, 
       },
       {
         name: "Commercial Solar Solutions",
@@ -153,7 +153,7 @@ async function seed() {
         content: "Reduce your energy costs and carbon footprint with our commercial solutions...",
         status: "scheduled",
         scheduledAt: new Date("2024-03-20T10:00:00Z"),
-        createdBy: createdUsers[2].id, // Jane Smith
+        createdBy: createdUsers[2].id, 
       },
       {
         name: "Residential Solar Upgrade",
@@ -163,45 +163,54 @@ async function seed() {
         sentAt: new Date("2024-03-01T09:00:00Z"),
         openRate: "57.90",
         clickRate: "19.50",
-        createdBy: createdUsers[2].id, // Jane Smith
+        createdBy: createdUsers[2].id, 
       }
     ]).returning();
 
     console.log(`Created ${createdCampaigns.length} campaigns`);
 
-    // Create communications
+    
     const createdCommunications = await db.insert(communications).values([
       {
         leadId: createdLeads[0].id,
-        userId: createdUsers[1].id, // John Doe
+        userId: createdUsers[1].id, 
         type: "call",
         subject: "Initial contact call",
         content: "Discussed solar panel options and financing. Customer interested in 25kW system.",
-        completedAt: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+        completedAt: new Date(Date.now() - 2 * 60 * 60 * 1000), 
       },
       {
         leadId: createdLeads[1].id,
-        userId: createdUsers[1].id, // John Doe
+        userId: createdUsers[1].id, 
         type: "email",
         subject: "Proposal sent",
         content: "Sent detailed proposal for 40kW commercial solar installation with ROI analysis.",
-        completedAt: new Date(Date.now() - 4 * 60 * 60 * 1000), // 4 hours ago
+        completedAt: new Date(Date.now() - 4 * 60 * 60 * 1000), 
       },
       {
         leadId: createdLeads[2].id,
-        userId: createdUsers[3].id, // Mike Johnson
+        userId: createdUsers[3].id, 
         type: "meeting",
         subject: "Site visit scheduled",
         content: "Scheduled on-site assessment for next Tuesday at 2:00 PM.",
-        scheduledAt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // 3 days from now
+        scheduledAt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), 
       },
       {
         leadId: createdLeads[4].id,
-        userId: createdUsers[1].id, // John Doe
+        userId: createdUsers[1].id, 
         type: "note",
         subject: "Contract signed",
         content: "Customer signed 125kW commercial installation contract. Project starts next month.",
-        completedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
+        completedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), 
+      },
+      // In the communications section of seed.ts, add:
+      {
+        leadId: createdLeads[0].id,
+        userId: createdUsers[1].id, 
+        type: "whatsapp",
+        subject: "WhatsApp follow-up",
+        content: "Hi Sarah! Following up on our call about the 25kW solar system. Are you available for a site visit next week?",
+        completedAt: new Date(Date.now() - 1 * 60 * 60 * 1000), 
       }
     ]).returning();
 
